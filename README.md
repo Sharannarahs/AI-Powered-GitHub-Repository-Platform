@@ -35,40 +35,7 @@ Users can authenticate through Clerk, create projects by providing a project nam
 
 ## Architecture Diagram
 
-The diagram below illustrates authentication, project creation, repository indexing, commit summarization, database storage, and the chatbot retrieval workflow.
-
-```mermaid
-flowchart TD
-    A[User] --> B[Next.js Application]
-    B --> C[Clerk Authentication]
-    C --> D[Project Dashboard]
-
-    D --> E[Create Project: Name + GitHub URL]
-    D --> F[Open Existing Project]
-
-    E --> G[tRPC Backend]
-    F --> G
-    G --> H[(Database via Prisma)]
-
-    E --> I[LangChain GitHub Loader]
-    I --> J[Load and Summarize Repository Files]
-    J --> K[text-embedding-004]
-    K --> H
-
-    F --> L[Octokit: Fetch Recent Commits and Diffs]
-    L --> M[Gemini AI Commit Summaries]
-    M --> H
-    H --> N[Display 10 Recent Commit Summaries]
-
-    F --> O[Repository Chatbot]
-    O --> P[Generate Question Embedding]
-    P --> Q[Cosine Similarity Search]
-    H --> Q
-    Q --> R[Top 10 Relevant Files]
-    R --> S[Gemini AI with Repository Context]
-    S --> T[Answer with File Names and Code References]
-    T --> O
-```
+<img width="1774" height="887" alt="image" src="https://github.com/user-attachments/assets/6fe7865a-9929-4ec6-a281-a3c89454a1fb" />
 
 ## How It Works
 
