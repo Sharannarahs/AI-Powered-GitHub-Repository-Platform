@@ -1,118 +1,200 @@
 
 # AI-Powered GitHub Repository Platform
 
-An AI-powered application that helps developers explore GitHub repositories, understand recent code changes, and ask questions about a codebase using AI-driven insights and repository-aware code assistance.
+An AI-powered SaaS application that simplifies GitHub repository exploration through intelligent commit summaries and a context-aware code chatbot. The platform helps developers understand code changes, navigate unfamiliar codebases, and locate specific functionality without manually searching through multiple files.
 
 ## Overview
 
-Users sign in with Clerk and access a dashboard where they can view existing projects or create a new project by entering a project name and GitHub repository URL.
+Understanding a large GitHub repository can be time-consuming, especially when developers need to review commit histories, understand existing implementations, or locate specific functionality across multiple files.
 
-Each project provides two main features:
+To address this challenge, I developed an AI-powered GitHub repository platform using Next.js, tRPC, Prisma, Gemini AI, Octokit, and LangChain.
 
-- **AI-powered commit summaries:** Retrieves recent commits and their diffs, generates summaries using Gemini AI, stores the summaries in the database, and displays the 10 most recent commit summaries.
-- **Repository-aware chatbot:** Answers questions about the codebase and provides relevant file names and code context.
+Users can authenticate through Clerk, create projects by providing a project name and GitHub repository URL, and access existing projects from a dashboard. Each project provides AI-generated summaries of recent commits and a chatbot that answers questions using relevant repository context.
 
 ## Key Features
 
-- **Authentication:** Uses Clerk to authenticate users.
-- **Project Management:** Lets users create projects with a project name and GitHub repository URL, and reopen existing projects.
-- **Commit Summarization:** Uses Octokit to retrieve recent commits and diffs, then Gemini AI generates summaries that are stored in the database and displayed in the project interface.
-- **AI Code Chatbot:** Uses repository context to answer questions such as where a file is located or where a particular feature is implemented.
-- **Relevant File Retrieval:** Uses embeddings and cosine similarity to select the top 10 files relevant to a user's question.
+- **User Authentication:** Integrated Clerk to authenticate users and provide access to the application.
+- **Project Management:** Allows users to create projects by entering a project name and GitHub repository URL, as well as view and reopen existing projects.
+- **AI-Powered Commit Summaries:** Retrieves recent GitHub commits and their diffs, generates summaries using Gemini AI, and stores the results in the database.
+- **Structured Commit History:** Displays the 10 most recent commit summaries alongside relevant commit details, such as author and date.
+- **Repository-Aware Chatbot:** Answers questions about repository structure, file locations, and code implementations.
+- **Semantic File Retrieval:** Uses vector embeddings and cosine similarity to identify the 10 most relevant files for a user's question.
+- **Context-Aware Responses:** Supplies retrieved repository content to Gemini AI to generate answers with relevant file names and code context.
 
 ## Technology Stack
 
-- **Next.js** — Application framework and user interface
-- **Clerk** — Authentication
-- **tRPC** — Communication between frontend and backend
-- **Prisma** — Database access
-- **Octokit** — GitHub repository and commit access
-- **Gemini AI** — Commit summaries, file summaries, and chatbot responses
-- **LangChain GitHub Repository Loader** — Loads repository files
-- **`text-embedding-004`** — Creates vector embeddings
-- **Cosine Similarity** — Retrieves files relevant to a question
+- **Next.js:** Builds the application interface and application framework.
+- **Clerk:** Handles user authentication.
+- **tRPC:** Connects frontend operations with backend procedures using type-safe communication.
+- **Prisma:** Manages database access and data models.
+- **Octokit:** Retrieves GitHub repository information, recent commits, and commit diffs.
+- **Gemini AI:** Generates commit summaries, repository file summaries, and chatbot responses.
+- **LangChain GitHub Repository Loader:** Loads source files from connected GitHub repositories.
+- **Google `text-embedding-004`:** Converts file summaries and user questions into vector embeddings.
+- **Cosine Similarity:** Compares question embeddings with stored file embeddings to retrieve relevant repository files.
 
 ## Architecture Diagram
 
+The diagram below illustrates authentication, project creation, repository indexing, commit summarization, database storage, and the chatbot retrieval workflow.
+
 ```mermaid
 flowchart TD
-    A[User] --> B[Next.js App + Clerk Login]
-    B --> C[Project Dashboard]
-    C --> D[Create Project: Name + GitHub URL]
-    C --> E[Open Existing Project]
+    A[User] --> B[Next.js Application]
+    B --> C[Clerk Authentication]
+    C --> D[Project Dashboard]
 
-    D --> F[Backend / tRPC]
-    E --> F
-    F --> G[(Database via Prisma)]
+    D --> E[Create Project: Name + GitHub URL]
+    D --> F[Open Existing Project]
 
-    D --> H[LangChain GitHub Loader]
-    H --> I[Gemini AI File Summaries]
-    I --> J[text-embedding-004]
-    J --> G
+    E --> G[tRPC Backend]
+    F --> G
+    G --> H[(Database via Prisma)]
 
-    E --> K[Octokit: Fetch Recent Commits and Diffs]
-    K --> L[Gemini AI Commit Summaries]
-    L --> G
-    G --> M[Display 10 Recent Commit Summaries]
+    E --> I[LangChain GitHub Loader]
+    I --> J[Load and Summarize Repository Files]
+    J --> K[text-embedding-004]
+    K --> H
 
-    E --> N[Code Chatbot: User Question]
-    N --> O[Question Embedding + Cosine Similarity]
-    G --> P[Stored File Embeddings]
-    P --> O
-    O --> Q[Top 10 Relevant Files]
-    Q --> R[Gemini AI Answer with File References]
-    R --> N
+    F --> L[Octokit: Fetch Recent Commits and Diffs]
+    L --> M[Gemini AI Commit Summaries]
+    M --> H
+    H --> N[Display 10 Recent Commit Summaries]
+
+    F --> O[Repository Chatbot]
+    O --> P[Generate Question Embedding]
+    P --> Q[Cosine Similarity Search]
+    H --> Q
+    Q --> R[Top 10 Relevant Files]
+    R --> S[Gemini AI with Repository Context]
+    S --> T[Answer with File Names and Code References]
+    T --> O
 ```
 
 ## How It Works
 
-### 1. Create a Project
+### 1. Authentication and Project Management
 
-- The user signs in through Clerk.
-- From the dashboard, the user creates a project by entering its name and GitHub repository URL.
-- The project details are stored in the database.
-- LangChain loads repository files, Gemini AI summarizes the files, and `text-embedding-004` generates embeddings that are stored with file information in the database.
+- Users sign in through Clerk authentication.
+- After authentication, users access the project dashboard.
+- The dashboard displays existing projects and provides an option to create a new project.
+- To create a project, users enter a project name and the URL of the GitHub repository.
+- Project details are stored in the database and associated with the application workflow.
+- Users can open an existing project to access its commit summaries and code chatbot.
 
-### 2. Generate Commit Summaries
+### 2. AI-Powered Commit Summarization
 
-- Octokit retrieves recent commits and their diffs from the connected GitHub repository.
-- Gemini AI uses the commit information and diffs to generate summaries.
-- The generated summaries are saved in the database.
-- The application retrieves and displays the 10 most recent commit summaries in a structured interface.
+The commit summarization workflow helps developers understand repository changes without manually reviewing every commit diff.
 
-### 3. Ask Questions About the Code
+- **Retrieve repository data:** The backend uses Octokit to access the connected GitHub repository and retrieve recent commits.
+- **Extract code changes:** Commit diffs provide information about changes introduced in each commit.
+- **Generate summaries:** The commit information and diffs are sent to Gemini AI to generate concise summaries.
+- **Store results:** Generated commit summaries are stored in the database.
+- **Display summaries:** The application retrieves the stored summaries and presents the 10 most recent commits in a structured interface.
 
-- The user asks a question through the project chatbot.
-- The question is converted into an embedding.
-- Cosine similarity compares the question embedding with stored file embeddings.
-- The top 10 most relevant files are selected and provided to Gemini AI as context.
-- The chatbot returns an answer with relevant file names and code context.
+This workflow makes it easier to review recent development activity and understand what changed in a repository.
+
+### 3. Repository Indexing and File Summarization
+
+The chatbot needs repository context to answer questions about source code. To support this, the application creates searchable representations of repository files.
+
+- **Load repository files:** LangChain's GitHub repository loader retrieves files from the connected repository.
+- **Summarize file contents:** Gemini AI generates concise summaries of the files, making their purpose and functionality easier to retrieve.
+- **Generate embeddings:** Google's `text-embedding-004` model converts the file summaries into vector embeddings.
+- **Store searchable information:** The embeddings and associated file metadata are stored in the database.
+
+These stored representations allow the application to retrieve potentially relevant files without relying solely on direct searches for matching words.
+
+### 4. AI-Powered Code Chatbot
+
+The chatbot uses Retrieval-Augmented Generation (RAG) to answer questions using relevant information from the connected repository.
+
+- **Accept a question:** The user asks a question, such as "Where is the authentication logic implemented?" or "Which file handles API requests?"
+- **Generate a question embedding:** The question is converted into a vector using the embedding model.
+- **Search for relevant files:** Cosine similarity compares the question vector with the stored repository file embeddings.
+- **Retrieve context:** The top 10 most relevant files are selected based on similarity.
+- **Generate an answer:** The selected repository context and the user's question are provided to Gemini AI.
+- **Return file references:** The chatbot generates an answer that helps the user identify relevant file names and understand the corresponding implementation.
+
+This approach helps developers navigate unfamiliar repositories and understand where particular functionality is implemented.
+
+## Data Flow
+
+### Project Creation and Repository Indexing
+
+1. User enters the project name and GitHub URL.
+2. The backend processes the project creation request.
+3. Project information is stored in the database.
+4. LangChain loads the repository files.
+5. Gemini AI summarizes the file contents.
+6. `text-embedding-004` generates vector embeddings.
+7. Embeddings and file metadata are stored for retrieval.
+
+### Commit Summarization
+
+1. Octokit retrieves recent commits and their diffs.
+2. Gemini AI generates concise summaries of the changes.
+3. The summaries are saved in the database.
+4. The application retrieves the stored summaries.
+5. The 10 most recent commit summaries are displayed in the project interface.
+
+### Chatbot Question and Answer
+
+1. The user submits a code-related question.
+2. The question is converted into a vector embedding.
+3. Cosine similarity identifies relevant stored file embeddings.
+4. The top 10 relevant files are retrieved.
+5. Gemini AI receives the question and selected repository context.
+6. The chatbot returns an answer with relevant file names and code context.
 
 ## Benefits
 
-- Makes recent repository changes easier to understand.
-- Helps developers locate files and identify where functionality is implemented.
-- Uses relevant repository context to provide more useful chatbot responses.
-- Helps frontend and backend developers explore and understand shared codebases.
+- **Faster Repository Exploration:** Reduces the effort required to understand recent changes and navigate codebases.
+- **Improved Code Understanding:** Provides concise commit summaries and repository-aware answers.
+- **Relevant File Discovery:** Helps developers identify files associated with specific features or implementations.
+- **Context-Aware AI Assistance:** Uses retrieved repository information to ground chatbot responses.
+- **Improved Collaboration:** Helps frontend, backend, and other developers understand shared repositories more efficiently.
 
-## Setup
+## Setup and Configuration
 
-- Install dependencies using the package manager and scripts configured in `package.json`.
-- Configure the required Clerk, database, Gemini AI, and GitHub environment variables.
-- Keep API keys and secrets in environment variables; do not commit them to Git.
+### Prerequisites
 
-## Notes
+- Node.js and the package manager used by the project.
+- A configured database.
+- Clerk application credentials.
+- Gemini AI API credentials.
+- GitHub access configured for repository retrieval.
 
-- Commit summaries are generated from GitHub commit information and diffs, stored in the database, and then displayed in the application.
-- Repository file summaries and embeddings support similarity-based retrieval for the chatbot.
-- The chatbot uses up to 10 relevant files as context for each question.
-```
+### Installation
 
-## How to add it to GitHub
+1. Clone the repository.
+2. Install dependencies using the package manager configured in the project.
+3. Configure the required environment variables.
+4. Run the development command defined in `package.json`.
 
-1. Open your repository and select `README.md`.
-2. Click the pencil icon to edit it.
-3. Replace the existing content with the Markdown above.
-4. Click **Commit changes**.
+Use the actual scripts and environment variable names from the project configuration when setting up the application.
 
-GitHub will automatically render the architecture diagram. You do not need to save it as a separate image.
+### Environment Variables
+
+The application may require configuration for:
+
+- Clerk authentication
+- Database connection
+- Gemini AI API access
+- GitHub repository access, where required
+
+Keep credentials and API keys in environment variables. Do not commit secrets to the repository.
+
+## Future Enhancements
+
+- Add incremental repository indexing when new commits are pushed.
+- Improve retrieval accuracy for large repositories.
+- Support filtering commit summaries by author, date, or branch.
+- Add conversation history for chatbot sessions.
+- Improve source-code references and navigation from chatbot answers.
+- Add background processing for repository indexing and summary generation.
+
+## Conclusion
+
+The AI-Powered GitHub Repository Platform combines GitHub integration, large language models, embeddings, and semantic retrieval to simplify repository exploration.
+
+By storing AI-generated commit summaries and using RAG to retrieve relevant source files, the application helps developers understand code changes, locate implementations, and navigate shared codebases more efficiently.
